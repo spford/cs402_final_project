@@ -1,19 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   FlatList,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import ItemCard from "../components/ItemCard";
 
 export default function FoundScreen({ items, onSelectItem, goBack }) {
+  const [query, setQuery] = useState("");
+  const filtered = items.filter(
+    (i) =>
+      i.title.toLowerCase().includes(query.toLowerCase()) ||
+      i.description.toLowerCase().includes(query.toLowerCase())
+  );
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Found Items</Text>
+
+      <TextInput
+        style={styles.search}
+        placeholder="Search found items..."
+        value={query}
+        onChangeText={setQuery}
+      />
       <FlatList
-        data={items}
+        data={filtered}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <ItemCard item={item} onPress={() => onSelectItem(item)} />
@@ -29,6 +43,13 @@ export default function FoundScreen({ items, onSelectItem, goBack }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
+  search: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+  },
   button: {
     backgroundColor: "#007AFF",
     paddingVertical: 12,
