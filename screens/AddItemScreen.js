@@ -73,7 +73,7 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
       <TouchableOpacity style={styles.backButton} onPress={goBack}>
         <Text style={styles.backText}>‹ Back</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Add New Item</Text>
+      <Text style={styles.title}>{type === "lost" ? "Post Lost Item" : "Post Found Item"}</Text>
       <TextInput
         style={styles.input}
         placeholder="Title"
@@ -144,7 +144,6 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
             const { latitude, longitude } = e.nativeEvent.coordinate;
             setLatitude(latitude);
             setLongitude(longitude);
-            setShowMapPicker(false);
           }}
         >
           {latitude && longitude && (

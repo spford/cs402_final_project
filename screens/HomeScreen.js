@@ -7,18 +7,18 @@ export default function HomeScreen({ goTo }) {
       <Text style={styles.title}>FoundIt</Text>
 
       <TouchableOpacity style={styles.button} onPress={() => goTo("lost")}>
-        <Text style={styles.buttonText}>Lost Items</Text>
+        <Text style={styles.buttonText}>Browse Lost Items</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => goTo("found")}>
-        <Text style={styles.buttonText}>Found Items</Text>
+        <Text style={styles.buttonText}>Browse Found Items</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, styles.addButton]}
         onPress={() => goTo("add")}
       >
-        <Text style={styles.buttonText}>Add New Item</Text>
+        <Text style={styles.buttonText}>Post New Item</Text>
       </TouchableOpacity>
     </View>
   );
