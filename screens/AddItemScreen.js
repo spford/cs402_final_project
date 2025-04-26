@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import MapView, { Marker } from "react-native-maps";
 
-export default function AddItemScreen({ setItems, onSuccess }) {
+export default function AddItemScreen({ setItems, onSuccess, goBack }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -21,40 +22,36 @@ export default function AddItemScreen({ setItems, onSuccess }) {
   const [showMapPicker, setShowMapPicker] = useState(false);
 
   useEffect(() => {
-    const runPermissionCheck = async () => {
+    (async () => {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        alert("Permission to access media library is required!");
+        Alert.alert("Permission needed", "Media-library access is required.");
       }
-    };
-
-    runPermissionCheck();
+    })();
   }, []);
 
   const handlePickImage = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.5,
       });
-
-      console.log("Image picker result:", result);
-
-      if (!result.canceled && result.assets?.length > 0) {
-        setImageUri(result.assets[0].uri);
+      if (!res.canceled && res.assets?.length) {
+        setImageUri(res.assets[0].uri);
       }
-    } catch (error) {
-      console.error("Image picker error:", error);
-      alert("Failed to open image picker.");
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Image picker error", "Could not open your gallery.");
     }
   };
 
   const handleSubmit = () => {
+    if (!isValid) return; // should never fire because button is disabled
     const newItem = {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       location: location.trim() || null,
       imageUri,
       type,
@@ -65,8 +62,17 @@ export default function AddItemScreen({ setItems, onSuccess }) {
     onSuccess();
   };
 
+  const isValid =
+    title.trim() !== "" &&
+    description.trim() !== "" &&
+    latitude !== null &&
+    longitude !== null;
+
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={goBack}>
+        <Text style={styles.backText}>‹ Back</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Add New Item</Text>
       <TextInput
         style={styles.input}
@@ -75,11 +81,11 @@ export default function AddItemScreen({ setItems, onSuccess }) {
         onChangeText={setTitle}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { height: 90 }]}
+        multiline
         placeholder="Description"
         value={description}
         onChangeText={setDescription}
-        multiline
       />
       <TextInput
         style={styles.input}
@@ -89,18 +95,24 @@ export default function AddItemScreen({ setItems, onSuccess }) {
       />
 
       <View style={styles.toggleContainer}>
-        <TouchableOpacity
-          style={[styles.toggle, type === "lost" && styles.toggleActive]}
-          onPress={() => setType("lost")}
-        >
-          <Text style={styles.toggleText}>Lost</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.toggle, type === "found" && styles.toggleActive]}
-          onPress={() => setType("found")}
-        >
-          <Text style={styles.toggleText}>Found</Text>
-        </TouchableOpacity>
+        {["lost", "found"].map((val) => (
+          <TouchableOpacity
+            key={val}
+            style={[
+              styles.toggle,
+              type === val ? styles.toggleActive : styles.toggleInactive,
+            ]}
+            onPress={() => setType(val)}
+          >
+            <Text
+              style={
+                type === val ? styles.toggleTextActive : styles.toggleTextInactive
+              }
+            >
+              {val === "lost" ? "Lost" : "Found"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
@@ -121,7 +133,7 @@ export default function AddItemScreen({ setItems, onSuccess }) {
 
       {showMapPicker && (
         <MapView
-          style={{ width: "100%", height: 200, marginBottom: 15 }}
+          style={styles.map}
           initialRegion={{
             latitude: 43.60304,
             longitude: -116.20088,
@@ -141,7 +153,14 @@ export default function AddItemScreen({ setItems, onSuccess }) {
         </MapView>
       )}
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+      <TouchableOpacity
+        style={[
+          styles.submitButton,
+          !isValid && styles.submitButtonDisabled,
+        ]}
+        onPress={handleSubmit}
+        disabled={!isValid}
+      >
         <Text style={styles.submitText}>Submit</Text>
       </TouchableOpacity>
     </View>
@@ -150,51 +169,63 @@ export default function AddItemScreen({ setItems, onSuccess }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
+  backButton: { marginBottom: 10 },
+  backText: { fontSize: 16, color: "#007AFF" },
+  title: { fontSize: 28, fontWeight: "bold", marginBottom: 15 },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    marginBottom: 15,
+    marginBottom: 12,
   },
   toggleContainer: { flexDirection: "row", marginBottom: 15 },
   toggle: {
     flex: 1,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#007AFF",
     borderRadius: 8,
+    marginHorizontal: 4,
     alignItems: "center",
-    marginHorizontal: 5,
   },
   toggleActive: {
     backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
   },
-  toggleText: {
-    color: "#fff",
+  toggleInactive: {
+    backgroundColor: "white",
+    borderColor: "#007AFF",
   },
+  toggleTextActive: { color: "#fff" },
+  toggleTextInactive: { color: "#007AFF" },
   imagePicker: {
     padding: 12,
     backgroundColor: "#eee",
     alignItems: "center",
     borderRadius: 8,
-    marginBottom: 15,
+    marginBottom: 12,
   },
-  imagePickerText: {
-    color: "#333",
-  },
+  imagePickerText: { color: "#333" },
   imagePreview: {
     width: "100%",
     height: 150,
-    marginBottom: 15,
     borderRadius: 8,
+    marginBottom: 12,
+  },
+  map: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 12,
   },
   submitButton: {
     backgroundColor: "#34C759",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#a5d6a7",
   },
   submitText: {
     color: "#fff",

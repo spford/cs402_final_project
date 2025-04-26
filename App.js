@@ -70,6 +70,7 @@ export default function App() {
         return (
           <AddItemScreen
             setItems={setItems}
+            goBack={() => setScreen("home")}
             onSuccess={() => setScreen("home")}
           />
         );
