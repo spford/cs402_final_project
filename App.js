@@ -1,15 +1,42 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet } from "react-native";
+
 import LostScreen from "./screens/LostScreen";
 import FoundScreen from "./screens/FoundScreen";
 import AddItemScreen from "./screens/AddItemScreen";
 import ItemDetailScreen from "./screens/ItemDetailScreen";
 import HomeScreen from "./screens/HomeScreen";
 
+import { loadItems, saveItems } from "./utils/api";
+
 export default function App() {
+  const USER = "parkerparrish"; 
   const [screen, setScreen] = useState("home");
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+  //pull data when app mounts
+  useEffect(() => {
+    (async () => {
+      try {
+        const remote = await loadItems(USER);
+        setItems(remote);
+      } catch (e) {
+        console.warn("Could not load items:", e.message);
+      } finally {
+        setInitialLoadDone(true);
+      }
+    })();
+  }, []);
+
+  //each time items change push entire array back up 
+  useEffect(() => {
+    if (!initialLoadDone) return; // skip first empty run
+    saveItems(USER, items).catch((e) =>
+      console.warn("Could not save items:", e.message)
+    );
+  }, [items, initialLoadDone]);
 
   const navigate = (target) => setScreen(target);
 
@@ -54,7 +81,7 @@ export default function App() {
           />
         );
       default:
-        return <Text style={styles.title}>404 - Screen not found</Text>;
+        return <Text style={styles.title}>404 – Screen not found</Text>;
     }
   };
 
