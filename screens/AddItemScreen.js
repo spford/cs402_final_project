@@ -48,7 +48,7 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
   };
 
   const handleSubmit = () => {
-    if (!isValid) return; // should never fire because button is disabled
+    if (!isValid) return;
     const newItem = {
       title: title.trim(),
       description: description.trim(),
@@ -70,10 +70,7 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={goBack}>
-        <Text style={styles.backText}>‹ Back</Text>
-      </TouchableOpacity>
-      <Text style={styles.title}>{type === "lost" ? "Post Lost Item" : "Post Found Item"}</Text>
+      <Text style={styles.title}>{type === "lost" ? "Post New Lost Item" : "Post New Found Item"}</Text>
       <TextInput
         style={styles.input}
         placeholder="Title"
@@ -152,24 +149,24 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
         </MapView>
       )}
 
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          !isValid && styles.submitButtonDisabled,
-        ]}
-        onPress={handleSubmit}
-        disabled={!isValid}
-      >
-        <Text style={styles.submitText}>Submit</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.backButtonRow} onPress={goBack}>
+          <Text style={styles.backText}>‹ Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.submitButton, !isValid && styles.submitButtonDisabled]}
+          onPress={handleSubmit}
+          disabled={!isValid}
+        >
+          <Text style={styles.submitText}>Submit</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  backButton: { marginBottom: 10 },
-  backText: { fontSize: 16, color: "#007AFF" },
   title: { fontSize: 28, fontWeight: "bold", marginBottom: 15 },
   input: {
     borderWidth: 1,
@@ -217,11 +214,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
   },
+  buttonRow: { flexDirection: "row", justifyContent: "space-between" },
+  backButtonRow: {
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+  },
+  backText: { fontSize: 18, color: "#007AFF" },
   submitButton: {
     backgroundColor: "#34C759",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
+    flex: 1,
+    marginLeft: 8,
   },
   submitButtonDisabled: {
     backgroundColor: "#a5d6a7",
