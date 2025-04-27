@@ -54,7 +54,16 @@ export default function App() {
 
   switch (screen) {
     case "home":
-      return <HomeScreen goTo={go} />;
+    return (
+      <HomeScreen
+        currentUser={currentUser}
+        goTo={go}
+        logout={() => {
+          setCurrentUser(null);  // returns us to AuthScreen
+          setScreen("home");
+        }}
+      />
+    );
     case "lost":
       return (
         <LostScreen
