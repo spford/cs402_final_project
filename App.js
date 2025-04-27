@@ -88,6 +88,8 @@ export default function App() {
       return (
         <ItemDetailScreen
           item={selectedItem}
+          currentUser={currentUser}
+          deleteItem={(itm) => setItems((arr) => arr.filter((i) => i !== itm))}
           goBack={() => go("home")}
         />
       );

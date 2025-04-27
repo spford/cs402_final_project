@@ -9,28 +9,42 @@ import {
 } from "react-native";
 import ItemCard from "../components/ItemCard";
 
-export default function FoundScreen({ items, onSelectItem, goBack }) {
+export default function FoundScreen({
+  items,
+  setItems,
+  currentUser,
+  onSelectItem,
+  goBack,
+}) {
   const [query, setQuery] = useState("");
   const filtered = items.filter(
     (i) =>
       i.title.toLowerCase().includes(query.toLowerCase()) ||
       i.description.toLowerCase().includes(query.toLowerCase())
   );
+  const deleteItem = (item) => {
+    if (item.owner !== currentUser.username) return;
+    setItems((arr) => arr.filter((i) => i !== item));
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Found Items</Text>
 
       <TextInput
         style={styles.search}
-        placeholder="Search found items..."
+        placeholder="Search found items…"
         value={query}
         onChangeText={setQuery}
       />
       <FlatList
         data={filtered}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, idx) => idx.toString()}
         renderItem={({ item }) => (
-          <ItemCard item={item} onPress={() => onSelectItem(item)} />
+          <ItemCard
+            item={item}
+            onPress={() => onSelectItem(item)}
+            onLongPress={() => deleteItem(item)}
+          />
         )}
       />
       <TouchableOpacity style={styles.button} onPress={goBack}>
@@ -53,10 +67,9 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#007AFF",
     paddingVertical: 12,
-    paddingHorizontal: 24,
     borderRadius: 12,
-    marginTop: 20,
     alignItems: "center",
+    marginTop: 20,
   },
   buttonText: { color: "#fff", fontSize: 18 },
 });
