@@ -1,95 +1,106 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
+import AuthScreen from "./screens/AuthScreen";
+import HomeScreen from "./screens/HomeScreen";
+import AddItemScreen from "./screens/AddItemScreen";
 import LostScreen from "./screens/LostScreen";
 import FoundScreen from "./screens/FoundScreen";
-import AddItemScreen from "./screens/AddItemScreen";
 import ItemDetailScreen from "./screens/ItemDetailScreen";
-import HomeScreen from "./screens/HomeScreen";
 
-import { loadItems, saveItems } from "./utils/api";
+import { loadAll, saveAll } from "./utils/api";
 
 export default function App() {
-  const USER = "parkerparrish"; 
-  const [screen, setScreen] = useState("home");
-  const [items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);// auth
+  const [dataObj, setDataObj] = useState({ accounts: [], items: [] });
+  const [loaded, setLoaded]  = useState(false);// load flag
 
-  //pull data when app mounts
+  const [screen, setScreen] = useState("home");// navigation
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const items = dataObj.items;
+
   useEffect(() => {
     (async () => {
       try {
-        const remote = await loadItems(USER);
-        setItems(remote);
+        const d = await loadAll();
+        setDataObj(d);
       } catch (e) {
-        console.warn("Could not load items:", e.message);
+        console.warn("Load error:", e);
       } finally {
-        setInitialLoadDone(true);
+        setLoaded(true);
       }
     })();
   }, []);
 
-  //each time items change push entire array back up 
   useEffect(() => {
-    if (!initialLoadDone) return; // skip first empty run
-    saveItems(USER, items).catch((e) =>
-      console.warn("Could not save items:", e.message)
+    if (!loaded) return;
+    saveAll(dataObj).catch((e) => console.warn("Save error:", e));
+  }, [dataObj, loaded]);
+
+  const setItems = (fn) =>
+    setDataObj((prev) => ({ ...prev, items: fn(prev.items) }));
+
+  const go = (dest) => setScreen(dest);
+
+  if (!currentUser) {
+    return (
+      <AuthScreen
+        onLogin={setCurrentUser}
+        setData={setDataObj}
+      />
     );
-  }, [items, initialLoadDone]);
+  }
 
-  const navigate = (target) => setScreen(target);
-
-  const renderScreen = () => {
-    switch (screen) {
-      case "home":
-        return <HomeScreen goTo={navigate} />;
-      case "lost":
-        return (
-          <LostScreen
-            items={items.filter((item) => item.type === "lost")}
-            onSelectItem={(item) => {
-              setSelectedItem(item);
-              setScreen("detail");
-            }}
-            goBack={() => setScreen("home")}
-          />
-        );
-      case "found":
-        return (
-          <FoundScreen
-            items={items.filter((item) => item.type === "found")}
-            onSelectItem={(item) => {
-              setSelectedItem(item);
-              setScreen("detail");
-            }}
-            goBack={() => setScreen("home")}
-          />
-        );
-      case "add":
-        return (
-          <AddItemScreen
-            setItems={setItems}
-            goBack={() => setScreen("home")}
-            onSuccess={() => setScreen("home")}
-          />
-        );
-      case "detail":
-        return (
-          <ItemDetailScreen
-            item={selectedItem}
-            goBack={() => setScreen("home")}
-          />
-        );
-      default:
-        return <Text style={styles.title}>404 – Screen not found</Text>;
-    }
-  };
-
-  return <View style={styles.container}>{renderScreen()}</View>;
+  switch (screen) {
+    case "home":
+      return <HomeScreen goTo={go} />;
+    case "lost":
+      return (
+        <LostScreen
+          items={items.filter((i) => i.type === "lost")}
+          setItems={setItems}
+          currentUser={currentUser}
+          onSelectItem={(item) => { setSelectedItem(item); go("detail"); }}
+          goBack={() => go("home")}
+        />
+      );
+    case "found":
+      return (
+        <FoundScreen
+          items={items.filter((i) => i.type === "found")}
+          setItems={setItems}
+          currentUser={currentUser}
+          onSelectItem={(item) => { setSelectedItem(item); go("detail"); }}
+          goBack={() => go("home")}
+        />
+      );
+    case "add":
+      return (
+        <AddItemScreen
+          user={currentUser}
+          setItems={setItems}
+          onSuccess={() => go("home")}
+          goBack={() => go("home")}
+        />
+      );
+    case "detail":
+      return (
+        <ItemDetailScreen
+          item={selectedItem}
+          goBack={() => go("home")}
+        />
+      );
+    default:
+      return (
+        <View style={styles.center}>
+          <Text style={styles.title}>404 – Screen not found</Text>
+        </View>
+      );
+  }
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  title: { fontSize: 32, textAlign: "center", marginTop: 50 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  title:  { fontSize: 32, textAlign: "center" },
 });

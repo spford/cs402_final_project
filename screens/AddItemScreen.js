@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  ScrollView,
   View,
   Text,
   TextInput,
@@ -11,7 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import MapView, { Marker } from "react-native-maps";
 
-export default function AddItemScreen({ setItems, onSuccess, goBack }) {
+export default function AddItemScreen({ user, setItems, onSuccess, goBack }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -26,7 +27,7 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permission needed", "Media-library access is required.");
+        Alert.alert("Permission needed", "Media‑library access is required.");
       }
     })();
   }, []);
@@ -57,6 +58,8 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
       type,
       latitude,
       longitude,
+      owner: user.username,
+      phone: user.phone,
     };
     setItems((prev) => [...prev, newItem]);
     onSuccess();
@@ -69,8 +72,15 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
     longitude !== null;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{type === "lost" ? "Post New Lost Item" : "Post New Found Item"}</Text>
+    <ScrollView
+      contentContainerStyle={styles.scroll}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.title}>
+        {type === "lost" ? "Post New Lost Item" : "Post New Found Item"}
+      </Text>
+
       <TextInput
         style={styles.input}
         placeholder="Title"
@@ -103,7 +113,9 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
           >
             <Text
               style={
-                type === val ? styles.toggleTextActive : styles.toggleTextInactive
+                type === val
+                  ? styles.toggleTextActive
+                  : styles.toggleTextInactive
               }
             >
               {val === "lost" ? "Lost" : "Found"}
@@ -155,18 +167,18 @@ export default function AddItemScreen({ setItems, onSuccess, goBack }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.submitButton, !isValid && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
           disabled={!isValid}
+          onPress={handleSubmit}
         >
           <Text style={styles.submitText}>Submit</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  scroll: { padding: 20 },
   title: { fontSize: 28, fontWeight: "bold", marginBottom: 15 },
   input: {
     borderWidth: 1,
@@ -232,11 +244,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  submitButtonDisabled: {
-    backgroundColor: "#a5d6a7",
-  },
-  submitText: {
-    color: "#fff",
-    fontSize: 18,
-  },
+  submitButtonDisabled: { backgroundColor: "#a5d6a7" },
+  submitText: { color: "#fff", fontSize: 18 },
 });

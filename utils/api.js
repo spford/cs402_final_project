@@ -1,16 +1,21 @@
-const BASE_URL =
-  "https://mec402.boisestate.edu/csclasses/cs402/codesnips"; // change if needed
+const URL =
+  "https://mec402.boisestate.edu/csclasses/cs402/codesnips/loadjson.php?user=parkerparrish";
+const SAVE =
+  "https://mec402.boisestate.edu/csclasses/cs402/codesnips/savejson.php?user=parkerparrish";
 
-export async function loadItems(user) {
-  const r = await fetch(`${BASE_URL}/loadjson.php?user=${user}`);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return await r.json();
+export async function loadAll() {
+  const r = await fetch(URL);
+  if (r.status === 404) return { accounts: [], items: [] };
+  const data = await r.json();
+  return Array.isArray(data)
+    ? { accounts: [], items: data } // old shape fallback
+    : data;
 }
 
-export async function saveItems(user, items) {
-  await fetch(`${BASE_URL}/savejson.php?user=${user}`, {
+export async function saveAll(obj) {
+  await fetch(SAVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(items),
+    body: JSON.stringify(obj),
   });
 }

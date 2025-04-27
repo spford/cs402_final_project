@@ -1,66 +1,62 @@
 import React, { useState } from "react";
 import {
-  View,
-  FlatList,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
+  View, FlatList, Text, StyleSheet, TouchableOpacity, TextInput,
 } from "react-native";
 import ItemCard from "../components/ItemCard";
 
-export default function LostScreen({ items, onSelectItem, goBack }) {
-  const [query, setQuery] = useState("");
+export default function LostScreen({
+  items, setItems, currentUser, onSelectItem, goBack,
+}) {
+  const [q, setQ] = useState("");
 
   const filtered = items.filter(
-    (i) =>
-      i.title.toLowerCase().includes(query.toLowerCase()) ||
-      i.description.toLowerCase().includes(query.toLowerCase())
+    (i) => i.title.toLowerCase().includes(q.toLowerCase()) ||
+           i.description.toLowerCase().includes(q.toLowerCase())
   );
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Lost Items</Text>
+  const clearLost = () =>
+    setItems((arr) => arr.filter((i) => i.type !== "lost"));
 
-      <TextInput
-        style={styles.search}
-        placeholder="Search lost items..."
-        value={query}
-        onChangeText={setQuery}
-      />
+  const delItem = (item) => {
+    if (item.owner !== currentUser.username) return;
+    setItems((arr) => arr.filter((i) => i !== item));
+  };
+
+  return (
+    <View style={s.c}>
+      <Text style={s.t}>Lost Items</Text>
+
+      <TextInput style={s.s} placeholder="Search…" value={q} onChangeText={setQ} />
 
       <FlatList
         data={filtered}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, i) => i.toString()}
         renderItem={({ item }) => (
-          <ItemCard item={item} onPress={() => onSelectItem(item)} />
+          <ItemCard
+            item={item}
+            onPress={() => onSelectItem(item)}
+            onLongPress={() => delItem(item)}
+          />
         )}
       />
 
-      <TouchableOpacity style={styles.button} onPress={goBack}>
-        <Text style={styles.buttonText}>Back</Text>
-      </TouchableOpacity>
+      <View style={s.row}>
+        <TouchableOpacity style={s.btn} onPress={goBack}>
+          <Text style={s.bt}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.btn, { backgroundColor: "#FF3B30" }]} onPress={clearLost}>
+          <Text style={s.bt}>Delete All</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
-  search: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 20,
-    alignItems: "center",
-  },
-  buttonText: { color: "#fff", fontSize: 18 },
+const s = StyleSheet.create({
+  c:{ flex:1,padding:20 }, t:{ fontSize:28,fontWeight:"bold",marginBottom:20 },
+  s:{ borderWidth:1,borderColor:"#ccc",borderRadius:8,padding:10,marginBottom:15 },
+  row:{ flexDirection:"row",justifyContent:"space-between" },
+  btn:{ flex:1,backgroundColor:"#007AFF",paddingVertical:12,borderRadius:12,
+        alignItems:"center",marginHorizontal:4 },
+  bt:{ color:'#fff',fontSize:18 },
 });
