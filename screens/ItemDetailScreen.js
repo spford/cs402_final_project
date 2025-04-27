@@ -11,21 +11,29 @@ import MapView, { Marker } from "react-native-maps";
 
 export default function ItemDetailScreen({
   item,
-  currentUser,   // <-- new prop
+  currentUser,
   goBack,
-  deleteItem,    // <-- new prop (called when owner taps Delete)
+  deleteItem,
 }) {
   const isOwner = currentUser.username === item.owner;
-  const intro =
-    item.type === "lost"
-      ? `Item was lost by ${item.owner}`
-      : `Item was found by ${item.owner}`;
+  const titleLine = `${item.title} – ${item.type === "lost" ? "lost" : "found"} by ${item.owner}`;
+
+  const renderContactLabel = () => {
+    const name = item.owner;
+    if (name.length > 12) {
+      return (
+        <>
+          <Text style={styles.actionText}>Contact</Text>
+          <Text style={styles.actionText}>{name}</Text>
+        </>
+      );
+    }
+    return <Text style={styles.actionText}>{`Contact ${name}`}</Text>;
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.intro}>{intro}</Text>
-
-      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.title}>{titleLine}</Text>
       <Text style={styles.desc}>{item.description}</Text>
       {item.location && <Text style={styles.location}>{item.location}</Text>}
       {item.imageUri && (
@@ -65,7 +73,7 @@ export default function ItemDetailScreen({
             onPress={() => item.phone && Linking.openURL(`tel:${item.phone}`)}
             disabled={!item.phone}
           >
-            <Text style={styles.actionText}>Contact Poster</Text>
+            {renderContactLabel()}
           </TouchableOpacity>
         )}
 
@@ -79,15 +87,12 @@ export default function ItemDetailScreen({
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  intro: { fontSize: 16, color: "#333", marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 10 },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
   desc: { fontSize: 16, marginBottom: 10 },
   location: { fontSize: 14, color: "#666", marginBottom: 10 },
   image: { width: "100%", height: 200, borderRadius: 8, marginBottom: 15 },
   map: { width: "100%", height: 200, marginBottom: 20 },
-
   btnRow: { flexDirection: "row", justifyContent: "space-between" },
-
   actionBtn: {
     flex: 1,
     backgroundColor: "#007AFF",
@@ -96,8 +101,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
-  actionText: { color: "#fff", fontSize: 18 },
-
+  actionText: { color: "#fff", fontSize: 16, textAlign: "center" },
   backBtn: {
     flex: 1,
     backgroundColor: "#34C759",
